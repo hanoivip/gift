@@ -11,10 +11,10 @@ class CreateGiftCodes extends Migration
     {
         Schema::create('gift_codes', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('code');
+            $table->string('gift_code');
             $table->string('pack');
             $table->integer('generate_uid')->nullable()->comment('Định danh người sinh code');
-            $table->integer('target_uid')->nullable()->comment('Định danh người được sử dụng code');
+            $table->string('target')->nullable()->comment('Tài khoản người được sử dụng code');
             $table->timestamp('use_time')->nullable()->comment('Thời gian thực tế sử dụng code');
             $table->integer('usage_uid')->nullable()->comment('Đinh danh người thực tế đã dùng code');
         });

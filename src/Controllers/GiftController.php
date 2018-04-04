@@ -4,9 +4,9 @@ namespace Hanoivip\Gift\Controllers;
 
 use Hanoivip\Gift\Requests\GeneratePersonalGift;
 use Hanoivip\Gift\Requests\UseGift;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Request;
 use Exception;
 use Hanoivip\Gift\Services\GiftService;
 
@@ -25,7 +25,7 @@ class GiftController extends Controller
         $packages = [];
         $all = $this->gift->getUserPackages($uid);
         foreach ($all as $p)
-            $packages[$p->code] = $packages[$p->name];
+            $packages[$p->pack_code] = $p->name;
         return $packages;
     }
     
@@ -37,7 +37,7 @@ class GiftController extends Controller
         if ($request->ajax())
             return $packages;
         else
-            return view('generate-personal-code', ['packages' => $packages]);
+            return view('hanoivip::generate-personal-code', ['packages' => $packages]);
     }
     
     public function useUI(Request $request)
@@ -45,7 +45,7 @@ class GiftController extends Controller
         if ($request->ajax())
             return [];
         else
-            return view('use-code');
+            return view('hanoivip::use-code');
     }
     
     public function generate(GeneratePersonalGift $request)
@@ -83,21 +83,20 @@ class GiftController extends Controller
             return ['code' => $code, 'message' => $message, 'error_message' => $error_message];
         else 
         {
-            $packages = $this->getUserPackages($uid);
-            return view('generate-personal-code', 
-                ['code' => $code, 'packages' => $packages, 'message' => $message, 'error_message' => $error_message]);
+            return view('hanoivip::user-generate-result', 
+                ['code' => $code, 'message' => $message, 'error_message' => $error_message]);
         }
     }
     
     public function use(UseGift $request)
     {
-        $uid = Auth::guard('token')->user()['id'];
+        $user = Auth::guard('token')->user();
         $code = $request->input('code');
         $message = '';
         $error_message = '';
         try 
         {
-            $result = $this->gift->use($uid, $code);
+            $result = $this->gift->use($user, $code);
             if (gettype($result) == "string")
             {
                 $error_message = $result;
@@ -118,11 +117,32 @@ class GiftController extends Controller
         if ($request->ajax())
             return ['message' => $message, 'error_message' => $error_message];
         else
-            return view('use-code', ['message' => $message, 'error_message' => $error_message]);
+            return view('hanoivip::use-code', ['message' => $message, 'error_message' => $error_message]);
     }
     
     public function statistics(Request $request)
     {
         
+    }
+    
+    public function history(Request $request)
+    {
+        $uid = Auth::guard('token')->user()['id'];
+        $histories = [];
+        $error_message = '';
+        try 
+        {
+            $histories = $this->gift->history($uid);
+        }
+        catch (Exception $ex)
+        {
+            Log::error('Gift get user generation history error. Msg:' . $ex->getMessage());
+            $error_message = __('gift.history.exception');
+        }
+        if ($request->ajax())
+            return [ 'histories' => $histories, 'error_message' => $error_message ];
+        else
+            return view('hanoivip::user-generate-history', 
+                [ 'histories' => $histories, 'error_message' => $error_message ]);
     }
 }

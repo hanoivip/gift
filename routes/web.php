@@ -4,17 +4,25 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'auth:token'])->namespace('Hanoivip\Gift\Controllers')->prefix('user')->group(function () {
     
+    // Home
+    Route::get('/gift', function () {
+        return redirect()->route('gift.use.ui');
+    });
+    
     // Người chơi bắt đầu sinh mã code của mình
     Route::get('/gift/generate', 'GiftController@personalGenerateUI')->name('gift.generate.ui');
     
     // Người chơi thực hiện sinh mã
-    Route::post('/gift/generate', 'GiftController@generate')->name('gift.generate');
+    Route::post('/gift/generate/result', 'GiftController@generate')->name('gift.generate');
     
     // Người chơi bắt đầu sử dụng code
     Route::get('/gift/use', 'GiftController@useUI')->name('gift.use.ui');
     
     // Người chơi sử dụng code
-    Route::post('/gift/use', 'GiftController@use')->name('gift.use');
+    Route::post('/gift/use/result', 'GiftController@use')->name('gift.use');
+    
+    // Người chơi xem danh sách đã tạo
+    Route::get('/gift/history', 'GiftController@history')->name('gift.history');
 
 });
 

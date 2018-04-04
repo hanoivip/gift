@@ -32,17 +32,17 @@ class GiftService
      * @param string $package Package code
      * @param number $count Number of code to generate
      * @param number $genUid Sender identification, Default admin ID = 0
-     * @param number $targetUid Allowed user to use this code
+     * @param string $target Allowed user to use this code
      * 
      * @return array|string Array of code generated
      */
-    public function generate($package, $count = 10, $genUid = 0, $targetUid = 0)
+    public function generate($package, $count = 10, $genUid = 0, $target = null)
     {
-        $template = GiftPackage::find($package);
+        $template = GiftPackage::where('pack_code', $package)->first();
         if (empty($template))
             throw new Exception('Gift gift package template not exists.');
-        if ($genUid > 0 && $targetUid > 0 && $genUid == $targetUid)
-            throw new Exception('Gift can not generate for your self');
+        //if ($genUid > 0 && $targetUid > 0 && $genUid == $targetUid)
+        //    throw new Exception('Gift can not generate for your self');
         $now = Carbon::now();
         $end_time = $template->end_time;
         if (!empty($end_time))
@@ -57,7 +57,7 @@ class GiftService
         $limit = $template->limit;
         if (!empty($limit))
         {
-            $count = GiftCode::where('code', $package)->count();
+            $count = GiftCode::where('pack', $package)->count();
             if ($count >= $limit)
             {
                 Log::error('Gift gift package ' . $package . ' has limit ');
@@ -65,18 +65,19 @@ class GiftService
             }
         }
         // Generate
-        $length = config('gift.length', DEFAULT_LENGTH);
+        $length = config('gift.length', self::DEFAULT_LENGTH);
         $codes = [];
         for ($i=1; $i<=$count; ++$i)
         {
             $code = $this->generateCode($template->prefix, $length);
             $codes[] = $code;
+            Log::debug('....' . $code);
             // Save to database
             GiftCode::create([
-                'code' => $code, 
+                'gift_code' => $code, 
                 'pack' => $package,
                 'generate_uid' => $genUid,
-                'target_uid' => $targetUid,
+                'target' => $target,
             ]);
         }
         
@@ -87,17 +88,14 @@ class GiftService
     {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
         $randstring = empty($prefix) ? '' : $prefix;
-        for ($i = 0; $i < $length; $i++) {
-            $randstring .= $characters[rand(0, strlen($characters))];
+        for ($i = 0; $i < $length; $i++) 
+        {
+            $randstring .= $characters[rand(0, strlen($characters) - 1)];
         }
         return $randstring;
         
     }
     
-    public function getUsageNumber($pack)
-    {
-        
-    }
     
     /**
      * Người chơi sử dụng 1 code nhất định
@@ -121,13 +119,16 @@ class GiftService
      * @param string $code
      * @return boolean|string True if success, String reason when fail
      */
-    public function use($uid, $code)
+    public function use($user, $code)
     {
-        $giftCode = GiftCode::where('code', $code)->get();
-        if ($giftCode->isEmpty())
-            throw new Exception('Gift user ' . $uid . ' submited non-exists code ' . $code);
-        $package = GiftPackage::where('pack_code', $giftCode->pack)->get();
-        if ($package->isEmpty())
+        $uid = $user['id'];
+        $username = $user['name'];
+        
+        $giftCode = GiftCode::where('gift_code', $code)->first();
+        if (empty($giftCode))
+            return __('gift.usage.not-exists');
+        $package = GiftPackage::where('pack_code', $giftCode->pack)->first();
+        if (empty($package))
             throw new Exception('Gift gift code template does not exists ' . $giftCode->pack);
         $now = Carbon::now();
         $end_time = $package->end_time;
@@ -145,10 +146,10 @@ class GiftService
             else
                 return __('gift.usage.other_already_used');
         }
-        $targetUid = $giftCode->target_uid;
-        if (!empty($targetUid))
+        $target = $giftCode->target;
+        if (!empty($target))
         {
-            if ($targetUid != $uid)
+            if ($username != $target)
                 return __('gift.usage.not_yours');
         }
         // Check limit
@@ -166,7 +167,7 @@ class GiftService
             Log::error('Gift package ' . $package->pack_code . ' has no rewards');
         // Mark used
         $giftCode->usage_uid = $uid;
-        $giftCode->usage_time = $now->timestamp;
+        $giftCode->use_time = $now;
         $giftCode->save();
         
         return true;
@@ -202,7 +203,7 @@ class GiftService
      */
     public function getUserPackages($uid)
     {
-        return GiftPackage::where('allow_users', true)->all();
+        return GiftPackage::where('allow_users', true)->get();
     }
     
     /**
@@ -258,5 +259,16 @@ class GiftService
     {
         $record = GiftPackage::where('pack_code', $package['code'])->first();
         $record->update($package);
+    }
+    
+    /**
+     * 
+     * @param number $genUid
+     * @return GiftCode[]
+     */
+    public function history($genUid)
+    {
+        $codes = GiftCode::where('generate_uid', $genUid)->get();
+        return $codes->toArray();
     }
 }

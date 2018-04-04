@@ -4,21 +4,17 @@
 
 @section('content')
 
-
-@if (!empty($message))
-<p> {{ $message }} </p>
-@endif
-@if (!empty($error_message))
-<p> {{ $error_message }} </p>
-@endif
-@if (!empty($code))
-<p> {{ $code }} </p>
-@endif
-
 <form method="POST" action="{{ route('gift.generate') }}">
 	{{ csrf_field() }}
-
-<button type="submit">Dùng</button>
+	Chọn gói/hoạt động:
+	<select id="package" name="package">
+	@foreach ($packages as $pkgcode => $pkg)
+		<option value="{{$pkgcode}}">{{$pkg}}</option>
+	@endforeach
+	</select>
+	Tên đăng nhập người muốn tặng:
+	<input id="target" name="target" value="" />
+	<button type="submit">Tạo mã</button>
 </form>
 
 @endsection
