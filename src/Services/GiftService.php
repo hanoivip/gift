@@ -104,6 +104,7 @@ class GiftService
      * + Người chơi đã lấy được 1 mã
      * 
      * Kiểm tra:
+     * + Chưa từng sử dụng loại code này
      * + Mã tồn tại
      * + Còn thời hạn sử dụng
      * + Chưa có người dùng (người khác hoặc tự mình)
@@ -138,13 +139,22 @@ class GiftService
             if ($now >= $endTime)
                 return __('gift.usage.time_out');
         }
+        // Kiểm tra đã bị sử dụng chưa
         $usageUid = $giftCode->usage_uid;
         if (!empty($usageUid))
         {
             if ($usageUid == $uid)
-                return __('gift.usage.once_only');
+                return __('gift.usage.already_used');
             else
                 return __('gift.usage.other_already_used');
+        }
+        // Kiểm tra đã dùng loại code này chưa
+        $gifts = GiftCode::where('pack', $package->pack_code)
+        ->where('usage_uid', $uid)
+        ->get();
+        if (!$gifts->isEmpty())
+        {
+            return __('gift.usage.once_only');
         }
         $target = $giftCode->target;
         if (!empty($target))
@@ -179,7 +189,7 @@ class GiftService
         {
             $type = $reward['type'];
             $id = $reward['id'];
-            $count = $rewards['count'];
+            $count = $reward['count'];
             switch ($type)
             {
                 case RewardTypes::BALANCE:
@@ -223,8 +233,7 @@ class GiftService
         }
         else
         {
-            $package = GiftPackage::all();
-            return $package->toArray();
+            return GiftPackage::all();
         }
     }
     

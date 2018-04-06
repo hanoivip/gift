@@ -32,6 +32,11 @@ Route::middleware(['web', 'admin'])->namespace('Hanoivip\Gift\Controllers')->pre
     // Thống kê tình hình sử dụng code
     Route::get('/gift/stat', 'GiftController@statistics')->name('gift.stat');
     
+    // Sinh mã
+    Route::get('/gift/generate', 'GiftController@generateUI')->name('gift.batch-generate.ui');
+    
+    Route::post('/gift/generate/result', 'GiftController@batchGenerate')->name('gift.batch-generate');
+    
     // Xem danh sách các gói code.
     Route::get('/gift/package', 'PackageController@list')->name('gift.package.list');
     

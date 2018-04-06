@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Hanoivip\Gift\Services\GiftService;
+use Hanoivip\Gift\Requests\BatchGenerateGift;
 
 class GiftController extends Controller
 {
@@ -40,12 +41,61 @@ class GiftController extends Controller
             return view('hanoivip::generate-personal-code', ['packages' => $packages]);
     }
     
+    public function generateUI(Request $request)
+    {
+        $packages = $this->gift->packges();
+        if ($request->ajax())
+            return $packages;
+        else
+            return view('hanoivip::generate-code', ['packages' => $packages]);
+    }
+    
     public function useUI(Request $request)
     {
         if ($request->ajax())
             return [];
         else
             return view('hanoivip::use-code');
+    }
+    
+    public function batchGenerate(BatchGenerateGift $request)
+    {
+        $uid = Auth::guard('token')->user()['id'];
+        $package = $request->input('package');
+        $count = $request->input('count');
+        $codes = [];
+        $message = '';
+        $error_message = '';
+        try 
+        {
+            $result = $this->gift->generate($package, $count, $uid);
+            if (gettype($result) == "string")
+                $error_message = $result;
+            else if (gettype($result) == "array")
+            {
+                if (empty($result))
+                    $error_message = __('gift.generate.fail');
+                    else
+                    {
+                        $codes = $result;
+                        $message = __('gift.generate.success');
+                    }
+            }
+            else
+                throw new Exception('Generate code unknown result type.');
+        }
+        catch (Exception $ex)
+        {
+            Log::error('GiftController batch gen gift code exception. Msg:' . $ex->getMessage());
+            $error_message = __('gift.generate.exception');
+        }
+        if ($request->ajax())
+            return ['codes' => $codes, 'message' => $message, 'error_message' => $error_message];
+        else
+        {
+            return view('hanoivip::generate-result',
+                ['codes' => $codes, 'message' => $message, 'error_message' => $error_message]);
+        }
     }
     
     public function generate(GeneratePersonalGift $request)
