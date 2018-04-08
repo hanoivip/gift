@@ -97,7 +97,7 @@ class PackageController extends Controller
         $error_message = '';
         try 
         {
-            $package = $this->gift->packges($request->input('code'));
+            $package = $this->gift->packges($request->input('pack_code'));
             if (!empty($package))
                 $error_message = __('gift.package.create.duplicated_code');
             else 

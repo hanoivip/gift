@@ -26,8 +26,19 @@ Route::middleware(['web', 'auth:token'])->namespace('Hanoivip\Gift\Controllers')
 
 });
 
+// TODO: find a way to protect
+// TODO: find a way to remote invoke
+Route::namespace('Hanoivip\Gift\Controllers')->prefix('sys')->group(function () {
+    Route::post('/gift/generate', 'GiftController@sysGenerate');
+});
+
 // Test: admin integrated
 Route::middleware(['web', 'admin'])->namespace('Hanoivip\Gift\Controllers')->prefix('ecmin')->group(function () {
+    
+    // Home
+    Route::get('/gift', function () {
+        return redirect()->route('gift.stat');
+    });
     
     // Thống kê tình hình sử dụng code
     Route::get('/gift/stat', 'GiftController@statistics')->name('gift.stat');

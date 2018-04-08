@@ -114,7 +114,10 @@ class GiftService
      * + Đánh dấu sử dụng
      * + Phát phần thưởng dựa trên cấu hình
      * 
-     * 
+     * TODO: điều kiện sử dụng code
+     * 1. Đăng ký trước ngày...
+     * 2. Đã là vip mấy..
+     * 3. Đăng nhập được bao nhiêu lần ..
      * 
      * @param number $uid
      * @param string $code
@@ -123,8 +126,6 @@ class GiftService
     public function use($user, $code)
     {
         $uid = $user['id'];
-        $username = $user['name'];
-        
         $giftCode = GiftCode::where('gift_code', $code)->first();
         if (empty($giftCode))
             return __('gift.usage.not-exists');
@@ -159,7 +160,8 @@ class GiftService
         $target = $giftCode->target;
         if (!empty($target))
         {
-            if ($username != $target)
+            if ($user['name'] != $target &&
+                $user['email'] != $target)
                 return __('gift.usage.not_yours');
         }
         // Check limit
@@ -179,7 +181,6 @@ class GiftService
         $giftCode->usage_uid = $uid;
         $giftCode->use_time = $now;
         $giftCode->save();
-        
         return true;
     }
     

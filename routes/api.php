@@ -10,12 +10,11 @@ Route::middleware('auth:token')->namespace('Hanoivip\Gift\Controllers')->prefix(
     // Người chơi sử dụng code
     Route::get('/gift/use', 'GiftController@useUI');
     
-    // Sinh mới 1 số code
+    // Sinh mới 1 code
     Route::post('/gift/generate', 'GiftController@generate');
     
     // Người chơi sử dụng 1 code nhất định
     Route::post('/gift/use', 'GiftController@use');
-
 });
 
 Route::middleware(['auth:token', 'admin'])->namespace('Hanoivip\Gift\Controllers')->prefix('api')->group(function () {
@@ -28,4 +27,6 @@ Route::middleware(['auth:token', 'admin'])->namespace('Hanoivip\Gift\Controllers
     
     // Cập nhật package
     Route::put('/gift/package', 'PackageController@update');
+    
+    // Sinh mã theo lô
 });

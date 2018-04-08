@@ -2,10 +2,8 @@
 
 namespace Hanoivip\Gift;
 
+use Hanoivip\Gift\Services\GiftService;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Log;
 
 class LibServiceProvider extends ServiceProvider
 {
@@ -20,5 +18,10 @@ class LibServiceProvider extends ServiceProvider
         
         $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+    }
+    
+    public function register()
+    {
+        $this->app->bind("IGift", GiftService::class);
     }
 }

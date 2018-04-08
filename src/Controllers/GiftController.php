@@ -98,6 +98,17 @@ class GiftController extends Controller
         }
     }
     
+    public function sysGenerate(Request $request)
+    {
+        $package = $request->input('package');
+        $target = $request->input('target');
+        $result = $this->gift->generate($package, 1, 0, $target);
+        if (gettype($result) == "array")
+            return $result[0];
+        else
+            abort(500);
+    }
+    
     public function generate(GeneratePersonalGift $request)
     {
         $uid = Auth::guard('token')->user()['id'];
@@ -172,7 +183,7 @@ class GiftController extends Controller
     
     public function statistics(Request $request)
     {
-        
+        return view('hanoivip::gift-stats');
     }
     
     public function history(Request $request)
