@@ -9,6 +9,7 @@ use Hanoivip\PaymentClient\BalanceUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Auth\Authenticatable;
 
 class GiftService
 {
@@ -119,13 +120,13 @@ class GiftService
      * 2. Đã là vip mấy..
      * 3. Đăng nhập được bao nhiêu lần ..
      * 
-     * @param number $uid
+     * @param Authenticatable $user
      * @param string $code
      * @return boolean|string True if success, String reason when fail
      */
     public function use($user, $code)
     {
-        $uid = $user['id'];
+        $uid = $user->getAuthIdentifier();
         $giftCode = GiftCode::where('gift_code', $code)->first();
         if (empty($giftCode))
             return __('gift.usage.not-exists');
@@ -160,8 +161,9 @@ class GiftService
         $target = $giftCode->target;
         if (!empty($target))
         {
-            if ($user['name'] != $target &&
-                $user['email'] != $target)
+            if ($user->getAuthIdentifierName() != $target)// &&
+                //TODO: change $user from array => Authenticatable, can not access email
+                //$user['email'] != $target)
                 return __('gift.usage.not_yours');
         }
         // Check limit

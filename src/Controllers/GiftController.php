@@ -32,7 +32,7 @@ class GiftController extends Controller
     
     public function personalGenerateUI(Request $request)
     {
-        $uid = Auth::guard('token')->user()['id'];
+        $uid = Auth::user()->getAuthIdentifier();
         $packages = $this->getUserPackages($uid);
         
         if ($request->ajax())
@@ -60,7 +60,7 @@ class GiftController extends Controller
     
     public function batchGenerate(BatchGenerateGift $request)
     {
-        $uid = Auth::guard('token')->user()['id'];
+        $uid = Auth::user()->getAuthIdentifier();
         $package = $request->input('package');
         $count = $request->input('count');
         $codes = [];
@@ -111,7 +111,7 @@ class GiftController extends Controller
     
     public function generate(GeneratePersonalGift $request)
     {
-        $uid = Auth::guard('token')->user()['id'];
+        $uid = Auth::user()->getAuthIdentifier();
         $package = $request->input('package');
         $target = $request->input('target');
         $code = '';
@@ -151,7 +151,7 @@ class GiftController extends Controller
     
     public function use(UseGift $request)
     {
-        $user = Auth::guard('token')->user();
+        $user = Auth::user();
         $code = $request->input('code');
         $message = '';
         $error_message = '';
@@ -188,7 +188,7 @@ class GiftController extends Controller
     
     public function history(Request $request)
     {
-        $uid = Auth::guard('token')->user()['id'];
+        $uid = Auth::user()->getAuthIdentifier();
         $histories = [];
         $error_message = '';
         try 

@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth:token'])->namespace('Hanoivip\Gift\Controllers')->prefix('user')->group(function () {
+Route::middleware(['web', 'auth:web' /*'auth:token'*/])->namespace('Hanoivip\Gift\Controllers')->prefix('user')->group(function () {
     
     // Home
     Route::get('/gift', function () {
