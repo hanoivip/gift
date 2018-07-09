@@ -10,12 +10,18 @@
 				"symlink" : true
 			}
 		}, {
-                        "type" : "path",
-                        "url" : "../game2",
-                        "options" : {
-                                "symlink" : true
-                        }
-                }
+			"type" : "path",
+			"url" : "../game",
+			"options" : {
+					"symlink" : true
+			}
+		}, {
+			"type" : "path",
+			"url" : "../events",
+			"options" : {
+					"symlink" : true
+			}
+		}
 	],
 	"require" : {
 		"php" : ">=7.0.0",
@@ -25,7 +31,8 @@
 		"laravel/tinker" : "~1.0",
 		"mervick/curl-helper" : "^1.1",
 		"hanoivip/payment-client" : "dev-master",
-		"hanoivip/game" : "dev-master"
+		"hanoivip/game" : "dev-master",
+		"hanoivip/events": "dev-master"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "~6.0"

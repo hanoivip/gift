@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Auth\Authenticatable;
+use Hanoivip\Events\Gift\TicketReceived;
 
 class GiftService
 {
@@ -17,7 +18,8 @@ class GiftService
     
     protected $balances;
     
-    public function __construct(BalanceUtil $balances)
+    public function __construct(
+        BalanceUtil $balances)
     {
         $this->balances = $balances;
     }
@@ -197,6 +199,9 @@ class GiftService
             {
                 case RewardTypes::BALANCE:
                     $this->balances->add($uid, $count, $reason, $id);
+                    break;
+                case RewardTypes::TICKET:
+                    event(new TicketReceived($uid, $id, $count));
                     break;
                 default:
                     Log::debug('Gift reward type ' . $type . ' doest not supported now!');
