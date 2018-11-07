@@ -21,6 +21,9 @@ class CreatePackage extends FormRequest
             'start_time' => 'required|string',
             'end_time' => 'required|string',
             'rewards' => 'required|string',
+            'const_code' => 'boolean',
+            'server_include' => 'string',
+            'server_exclude' => 'string',
             'allow_users' => 'integer'
         ];
     }

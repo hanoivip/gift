@@ -16,7 +16,9 @@ class UseGift extends FormRequest
     {
         return [
             // can check length by config
-            'code' => 'required|string'
+            'code' => 'required|string',
+            'svname' => 'string',
+            'roleid' => 'string'
         ];
     }
 }

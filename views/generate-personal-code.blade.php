@@ -8,8 +8,8 @@
 	{{ csrf_field() }}
 	Chọn gói/hoạt động:
 	<select id="package" name="package">
-	@foreach ($packages as $pkgcode => $pkg)
-		<option value="{{$pkgcode}}">{{$pkg}}</option>
+	@foreach ($packages as $pkg)
+		<option value="{{$pkg->pack_code}}">{{$pkg->name}}</option>
 	@endforeach
 	</select>
 	Tên đăng nhập người muốn tặng:

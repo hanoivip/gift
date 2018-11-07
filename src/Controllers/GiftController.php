@@ -10,31 +10,34 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Hanoivip\Gift\Services\GiftService;
 use Hanoivip\Gift\Requests\BatchGenerateGift;
+use Hanoivip\Game\Services\GameService;
+use Hanoivip\Game\Services\ServerService;
+use Hanoivip\Gift\MissionParamException;
 
 class GiftController extends Controller
 {
     protected $gift;
     
-    public function __construct(GiftService $gift)
-    {
-        $this->gift = $gift;    
-    }
+    protected $servers;
     
-    // TODO: find advance way
-    protected function getUserPackages($uid)
+    protected $operator;
+    
+    protected $game;
+    
+    public function __construct(
+        GiftService $gift,
+        ServerService $servers,
+        GameService $game)
     {
-        $packages = [];
-        $all = $this->gift->getUserPackages($uid);
-        foreach ($all as $p)
-            $packages[$p->pack_code] = $p->name;
-        return $packages;
+        $this->gift = $gift;
+        $this->servers = $servers;
+        $this->game = $game;
     }
     
     public function personalGenerateUI(Request $request)
     {
         $uid = Auth::user()->getAuthIdentifier();
-        $packages = $this->getUserPackages($uid);
-        
+        $packages = $this->gift->getUserPackages($uid);
         if ($request->ajax())
             return $packages;
         else
@@ -56,6 +59,26 @@ class GiftController extends Controller
             return [];
         else
             return view('hanoivip::use-code');
+    }
+    
+    public function use2UI(Request $request)
+    {
+        $servers = $this->servers->getAll();
+        $data = ['servers' => $servers ];
+        if ($this->game->accountHasManyChars() &&
+            $servers->isNotEmpty())
+        {
+            $user = Auth::user();
+            $chars = $this->game->queryRoles($user, $servers->first());
+        }
+        if ($request->has('error_message'))
+            $data['error_message'] = $request->get('error_message');
+        if (isset($chars))
+            $data['roles'] = $chars;
+        if ($request->ajax())
+            return $data;
+        else
+            return view('hanoivip::use-code', $data);
     }
     
     public function batchGenerate(BatchGenerateGift $request)
@@ -157,17 +180,34 @@ class GiftController extends Controller
         $error_message = '';
         try 
         {
-            $result = $this->gift->use($user, $code);
-            if (gettype($result) == "string")
+            $server = null;
+            $role = null;
+            if (!empty($request->get('svname')))
             {
-                $error_message = $result;
+                $svname = $request->get('svname');
+                $server = $this->servers->getServerByName($svname);
             }
-            else 
+            if (!empty($request->get('roleid')))
+                $role = $request->get('roleid');
+            try
             {
-                if ($result)
-                    $message = __('gift.use.success');
-                else
-                    $error_message = __('gift.use.fail');
+                $result = $this->gift->use($user, $code, $server, $role);
+                if (gettype($result) == "string")
+                {
+                    $error_message = $result;
+                }
+                else 
+                {
+                    if ($result)
+                        $message = __('gift.use.success');
+                    else
+                        $error_message = __('gift.use.fail');
+                }
+            }
+            catch (MissionParamException $mpe)
+            {
+                Log::debug('GiftController user is using game code');
+                return response()->redirectToRoute('gift.use2.ui', ['error_message' => __('gift.use.missing-params')]);
             }
         }
         catch (Exception $ex)

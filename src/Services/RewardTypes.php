@@ -7,4 +7,6 @@ class RewardTypes
     const BALANCE = "Balance";  // Balance point
     
     const TICKET = "Ticket";   // Ticket of doing some things
+    
+    const GAME_ITEMS = "Items";  // 
 }

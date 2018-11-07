@@ -3,6 +3,8 @@
 namespace Hanoivip\Gift\Services;
 
 use Carbon\Carbon;
+use Hanoivip\Game\Server;
+use Hanoivip\Game\Services\GameService;
 use Hanoivip\Gift\GiftCode;
 use Hanoivip\Gift\GiftPackage;
 use Hanoivip\PaymentClient\BalanceUtil;
@@ -11,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Auth\Authenticatable;
 use Hanoivip\Events\Gift\TicketReceived;
+use Hanoivip\Gift\MissionParamException;
 
 class GiftService
 {
@@ -18,10 +21,14 @@ class GiftService
     
     protected $balances;
     
+    protected $game;
+    
     public function __construct(
-        BalanceUtil $balances)
+        BalanceUtil $balances,
+        GameService $game)
     {
         $this->balances = $balances;
+        $this->game = $game;
     }
     
     /**
@@ -63,9 +70,14 @@ class GiftService
             $count = GiftCode::where('pack', $package)->count();
             if ($count >= $limit)
             {
-                Log::error('Gift gift package ' . $package . ' has limit ');
+                Log::error('Gift gift package ' . $package . ' has limit');
                 return __('gift.package.out_of_stock');
             }
+        }
+        if ($template->const_code)
+        {
+            Log::error('Gift gift package ' . $package . ' is const code');
+            return __('gift.package.is_const');
         }
         // Generate
         $length = config('gift.length', self::DEFAULT_LENGTH);
@@ -109,6 +121,7 @@ class GiftService
      * Kiểm tra:
      * + Chưa từng sử dụng loại code này
      * + Mã tồn tại
+     * - Trường hợp code hằng thì package tồn tại
      * + Còn thời hạn sử dụng
      * + Chưa có người dùng (người khác hoặc tự mình)
      * + Được phép sử dụng 
@@ -124,14 +137,34 @@ class GiftService
      * 
      * @param Authenticatable $user
      * @param string $code
+     * @param Server $server
+     * @param string $role
      * @return boolean|string True if success, String reason when fail
      */
-    public function use($user, $code)
+    public function use($user, $code, $server = null, $role = null)
     {
         $uid = $user->getAuthIdentifier();
         $giftCode = GiftCode::where('gift_code', $code)->first();
         if (empty($giftCode))
-            return __('gift.usage.not-exists');
+        {
+            // Có thể là const code
+            $package = GiftPackage::where('pack_code', $code)->first();
+            if (empty($package))
+                return __('gift.usage.not-exists');
+            else
+            {
+                if (empty($package->const_code))
+                    return __('gift.usage.const_code_mis_conf');
+                else
+                {
+                    // Const code found!
+                    $giftCode = new GiftCode();
+                    $giftCode->gift_code = $code;
+                    $giftCode->pack = $code;
+                    $giftCode->save();
+                }
+            }
+        }
         $package = GiftPackage::where('pack_code', $giftCode->pack)->first();
         if (empty($package))
             throw new Exception('Gift gift code template does not exists ' . $giftCode->pack);
@@ -175,10 +208,27 @@ class GiftService
             if ($count >= $package->limit)
                 return __('gift.usage.limited');
         }
-        // Rewarding user
+        // Check server scope
+        if (!empty($server) && !empty($package->server_include))
+        {
+            $includes = json_decode($package->server_include, true);
+            if (!empty($includes) &&
+                !in_array($server->ident, $includes))
+                return __('gift.usage.server-not-allowed');
+        }
+        if (!empty($server) && !empty($package->server_exclude))
+        {
+            $excludes = json_decode($package->server_exclude, true);
+            if (!empty($excludes) &&
+                in_array($server->ident, $excludes))
+                return __('gift.usage.server-is-prohibited');
+        }
+        // Rewarding user: TODO: make enqueue job here
         $rewards = json_decode($package->rewards, true);
         if (!empty($rewards))
-            $this->sendRewards($uid, $rewards, 'CodeUsage:' . $code);
+        {
+            $this->sendRewards($user, $rewards, 'CodeUsage:' . $code, $server, $role);
+        }
         else
             Log::error('Gift package ' . $package->pack_code . ' has no rewards');
         // Mark used
@@ -188,8 +238,86 @@ class GiftService
         return true;
     }
     
-    protected function sendRewards($uid, $rewards, $reason = "")
+    
+    public function use1($user, $code, $server = null, $role = null)
     {
+        $uid = $user->getAuthIdentifier();
+        $giftCode = GiftCode::where('gift_code', $code)->first();
+        if (empty($giftCode))
+            return __('gift.usage.not-exists');
+            $package = GiftPackage::where('pack_code', $giftCode->pack)->first();
+            if (empty($package))
+                throw new Exception('Gift gift code template does not exists ' . $giftCode->pack);
+                $now = Carbon::now();
+                $end_time = $package->end_time;
+                if (!empty($end_time))
+                {
+                    $endTime = new Carbon($end_time);
+                    if ($now >= $endTime)
+                        return __('gift.usage.time_out');
+                }
+                // Kiểm tra đã bị sử dụng chưa
+                $usageUid = $giftCode->usage_uid;
+                if (!empty($usageUid))
+                {
+                    if ($usageUid == $uid)
+                        return __('gift.usage.already_used');
+                        else
+                            return __('gift.usage.other_already_used');
+                }
+                // Kiểm tra đã dùng loại code này chưa
+                $gifts = GiftCode::where('pack', $package->pack_code)
+                ->where('usage_uid', $uid)
+                ->get();
+                if (!$gifts->isEmpty())
+                {
+                    return __('gift.usage.once_only');
+                }
+                $target = $giftCode->target;
+                if (!empty($target))
+                {
+                    if ($user->getAuthIdentifierName() != $target)// &&
+                        //TODO: change $user from array => Authenticatable, can not access email
+                        //$user['email'] != $target)
+                        return __('gift.usage.not_yours');
+                }
+                // Check limit
+                if ($package->limit > 0)
+                {
+                    $count = GiftCode::where('pack', $package->pack_code)->count();
+                    if ($count >= $package->limit)
+                        return __('gift.usage.limited');
+                }
+                // Rewarding user
+                $rewards = json_decode($package->rewards, true);
+                if (!empty($rewards))
+                    $this->sendRewards($user, $rewards, 'CodeUsage:' . $code, $server, $role);
+                    else
+                        Log::error('Gift package ' . $package->pack_code . ' has no rewards');
+                        // Mark used
+                        $giftCode->usage_uid = $uid;
+                        $giftCode->use_time = $now;
+                        $giftCode->save();
+                        return true;
+    }
+    
+    // TODO: move to queue
+    protected function sendRewards($user, $rewards, $reason = "", $server, $role)
+    {
+        foreach ($rewards as $reward)
+        {
+            $type = $reward['type'];
+            switch ($type)
+            {
+                case RewardTypes::GAME_ITEMS:
+                    if (empty($server)) 
+                    {
+                        throw new MissionParamException();
+                    }
+                    break;
+            }
+        }
+        $uid = $user->getAuthIdentifier();
         foreach ($rewards as $reward)
         {
             $type = $reward['type'];
@@ -203,8 +331,13 @@ class GiftService
                 case RewardTypes::TICKET:
                     event(new TicketReceived($uid, $id, $count));
                     break;
+                case RewardTypes::GAME_ITEMS:
+                    if (!$this->game->sendItem($server, $user, $id, $count, ['roleid' => $role]))
+                        throw new Exception("Gift send game reward fail");
+                    break;
                 default:
                     Log::debug('Gift reward type ' . $type . ' doest not supported now!');
+                    throw new Exception("Gift reward type not supported");
                     break;
             }
         }
