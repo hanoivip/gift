@@ -6,6 +6,7 @@ use Hanoivip\Gift\Requests\GeneratePersonalGift;
 use Hanoivip\Gift\Requests\UseGift;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Exception;
 use Hanoivip\Gift\Services\GiftService;
@@ -172,6 +173,9 @@ class GiftController extends Controller
         }
     }
     
+    /**
+     * Enable thread-safe per user
+     */
     public function use(UseGift $request)
     {
         $user = Auth::user();
@@ -180,6 +184,7 @@ class GiftController extends Controller
         $error_message = '';
         try 
         {
+            // Get Params
             $server = null;
             $role = null;
             if (!empty($request->get('svname')))
@@ -189,25 +194,39 @@ class GiftController extends Controller
             }
             if (!empty($request->get('roleid')))
                 $role = $request->get('roleid');
+            // Enable lock & request to service
+            $lock = "GiftUsing" . $user->getAuthIdentifier();
             try
             {
-                $result = $this->gift->use($user, $code, $server, $role);
-                if (gettype($result) == "string")
+                if (!Cache::lock($lock, 120)->get())
                 {
-                    $error_message = $result;
+                    Log::error("Gift another gift using is in progress..");
+                    $error_message = __('gift.use.too-fast');
                 }
-                else 
+                else
                 {
-                    if ($result)
-                        $message = __('gift.use.success');
-                    else
-                        $error_message = __('gift.use.fail');
+                    $result = $this->gift->use($user, $code, $server, $role);
+                    if (gettype($result) == "string")
+                    {
+                        $error_message = $result;
+                    }
+                    else 
+                    {
+                        if ($result)
+                            $message = __('gift.use.success');
+                        else
+                            $error_message = __('gift.use.fail');
+                    }
                 }
             }
             catch (MissionParamException $mpe)
             {
                 Log::debug('GiftController user is using game code');
                 return response()->redirectToRoute('gift.use2.ui', ['error_message' => __('gift.use.missing-params')]);
+            }
+            finally 
+            {
+                Cache::lock($lock)->release();
             }
         }
         catch (Exception $ex)

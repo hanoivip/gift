@@ -42,7 +42,6 @@
             <strong>{{ $errors->first('rewards') }}</strong>
         </span>
     @endif
-    
     Code hằng số: <input id="const_code" name="const_code" value="0" /><br/>
     Ds server đc sử dụng: <input id="server_include" name="server_include" value="[]" /><br/>
     Ds server ko đc sử dụng: <input id="server_exclude" name="server_exclude" value="[]" /><br/>
