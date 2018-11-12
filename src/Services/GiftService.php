@@ -159,7 +159,7 @@ class GiftService
                 {
                     // Const code found!
                     $giftCode = new GiftCode();
-                    $giftCode->gift_code = $code;
+                    $giftCode->gift_code = $code . '@' . uniqid();
                     $giftCode->pack = $code;
                     $giftCode->save();
                 }
