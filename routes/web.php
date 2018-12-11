@@ -7,7 +7,7 @@ Route::middleware(['web', 'auth:web' /*'auth:token'*/])->namespace('Hanoivip\Gif
     // Home
     Route::get('/gift', function () {
         return redirect()->route('gift.use.ui');
-    });
+    })->name('gift');
     // Người chơi bắt đầu sinh mã code của mình
     Route::get('/gift/generate', 'GiftController@personalGenerateUI')->name('gift.generate.ui');
     // Người chơi thực hiện sinh mã
