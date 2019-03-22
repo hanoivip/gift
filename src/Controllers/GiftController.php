@@ -98,11 +98,11 @@ class GiftController extends Controller
             else if (gettype($result) == "array")
             {
                 if (empty($result))
-                    $error_message = __('gift.generate.fail');
+                    $error_message = __('hanoivip::gift.generate.fail');
                     else
                     {
                         $codes = $result;
-                        $message = __('gift.generate.success');
+                        $message = __('hanoivip::gift.generate.success');
                     }
             }
             else
@@ -111,7 +111,7 @@ class GiftController extends Controller
         catch (Exception $ex)
         {
             Log::error('GiftController batch gen gift code exception. Msg:' . $ex->getMessage());
-            $error_message = __('gift.generate.exception');
+            $error_message = __('hanoivip::gift.generate.exception');
         }
         if ($request->ajax())
             return ['codes' => $codes, 'message' => $message, 'error_message' => $error_message];
@@ -149,11 +149,11 @@ class GiftController extends Controller
             else if (gettype($result) == "array")
             {
                 if (empty($result))
-                    $error_message = __('gift.generate.fail');
+                    $error_message = __('hanoivip::gift.generate.fail');
                 else
                 {
                     $code = $result[0];
-                    $message = __('gift.generate.success');
+                    $message = __('hanoivip::gift.generate.success');
                 }
             }
             else
@@ -162,7 +162,7 @@ class GiftController extends Controller
         catch (Exception $ex)
         {
             Log::error('GiftController gen gift code exception. Msg:' . $ex->getMessage());
-            $error_message = __('gift.generate.exception');
+            $error_message = __('hanoivip::gift.generate.exception');
         }
         if ($request->ajax())
             return ['code' => $code, 'message' => $message, 'error_message' => $error_message];
@@ -201,7 +201,7 @@ class GiftController extends Controller
                 if (!Cache::lock($lock, 120)->get())
                 {
                     Log::error("Gift another gift using is in progress..");
-                    $error_message = __('gift.use.too-fast');
+                    $error_message = __('hanoivip::gift.use.too-fast');
                 }
                 else
                 {
@@ -213,16 +213,16 @@ class GiftController extends Controller
                     else 
                     {
                         if ($result)
-                            $message = __('gift.use.success');
+                            $message = __('hanoivip::gift.use.success');
                         else
-                            $error_message = __('gift.use.fail');
+                            $error_message = __('hanoivip::gift.use.fail');
                     }
                 }
             }
             catch (MissionParamException $mpe)
             {
                 Log::debug('GiftController user is using game code');
-                return response()->redirectToRoute('gift.use2.ui', ['error_message' => __('gift.use.missing-params')]);
+                return response()->redirectToRoute('gift.use2.ui', ['error_message' => __('hanoivip::gift.use.missing-params')]);
             }
             finally 
             {
@@ -232,7 +232,7 @@ class GiftController extends Controller
         catch (Exception $ex)
         {
             Log::error('GiftController use gift code exception. Msg:' . $ex->getMessage());
-            $error_message = __('gift.use.exception');
+            $error_message = __('hanoivip::gift.use.exception');
         }
         if ($request->ajax())
             return ['message' => $message, 'error_message' => $error_message];
@@ -257,7 +257,7 @@ class GiftController extends Controller
         catch (Exception $ex)
         {
             Log::error('Gift get user generation history error. Msg:' . $ex->getMessage());
-            $error_message = __('gift.history.exception');
+            $error_message = __('hanoivip::gift.history.exception');
         }
         if ($request->ajax())
             return [ 'histories' => $histories, 'error_message' => $error_message ];

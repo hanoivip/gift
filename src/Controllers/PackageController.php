@@ -31,7 +31,7 @@ class PackageController extends Controller
         catch (Exception $ex)
         {
             Log::error('Package list all exception. Msg:' . $ex->getMessage());
-            $error = __('gift.package.list.exception');
+            $error = __('hanoivip::gift.package.list.exception');
         }
         if ($request->ajax())
             return ['error' => $error, 'packages' => $packages];
@@ -59,7 +59,7 @@ class PackageController extends Controller
         catch (Exception $ex) 
         {
             Log::error('Package view exception. Msg:' . $ex->getMessage());
-            $error = __('gift.package.view.exception');
+            $error = __('hanoivip::gift.package.view.exception');
         }
         if ($request->ajax())
             return ['error' => $error, 'package' => $package];
@@ -76,14 +76,14 @@ class PackageController extends Controller
         try
         {
             if ($this->gift->removePackage($code))
-                $message = __('gift.package.remove.success');
+                $message = __('hanoivip::gift.package.remove.success');
             else
-                $error_message = __('gift.package.remove.fail');
+                $error_message = __('hanoivip::gift.package.remove.fail');
         }
         catch (Exception $ex)
         {
             Log::error('Package remove exception. Msg:' . $ex->getMessage());
-            $error = __('gift.package.remove.exception');
+            $error = __('hanoivip::gift.package.remove.exception');
         }
         if ($request->ajax())
             return ['message' => $message, 'error_message' => $error_message];
@@ -99,7 +99,7 @@ class PackageController extends Controller
         {
             $package = $this->gift->packges($request->input('pack_code'));
             if (!empty($package))
-                $error_message = __('gift.package.create.duplicated_code');
+                $error_message = __('hanoivip::gift.package.create.duplicated_code');
             else 
             {
                 $data = $request->all();
@@ -107,13 +107,13 @@ class PackageController extends Controller
                 $data['start_time'] = Carbon::parse($data['start_time']);
                 $data['end_time'] = Carbon::parse($data['end_time']);
                 $this->gift->createPackage($data);
-                $message = __('gift.package.create.success');
+                $message = __('hanoivip::gift.package.create.success');
             }
         }
         catch (Exception $ex)
         {
             Log::error('Package create exception. Msg:' . $ex->getMessage());
-            $error = __('gift.package.create.exception');
+            $error = __('hanoivip::gift.package.create.exception');
         }
         if ($request->ajax())
             return ['message' => $message, 'error_message' => $error_message];
@@ -129,17 +129,17 @@ class PackageController extends Controller
         {
             $package = $this->gift->packges($request->input('code'));
             if (!empty($package))
-                $error_message = __('gift.package.update.not_found');
+                $error_message = __('hanoivip::gift.package.update.not_found');
             else
             {
                 $this->gift->updatePackage($request->all());
-                $message = __('gift.package.update.success');
+                $message = __('hanoivip::gift.package.update.success');
             }
         }
         catch (Exception $ex)
         {
             Log::error('Package update exception. Msg:' . $ex->getMessage());
-            $error = __('gift.package.update.exception');
+            $error = __('hanoivip::gift.package.update.exception');
         }
         if ($request->ajax())
             return ['message' => $message, 'error_message' => $error_message];

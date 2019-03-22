@@ -61,7 +61,7 @@ class GiftService
             if ($now >= $endTime)
             {
                 Log::error('Gift gift package ' . $package . ' timeout. Now allow to generate more');
-                return __('gift.package.timeout');
+                return __('hanoivip::gift.package.timeout');
             }
         }
         $limit = $template->limit;
@@ -71,13 +71,13 @@ class GiftService
             if ($count >= $limit)
             {
                 Log::error('Gift gift package ' . $package . ' has limit');
-                return __('gift.package.out_of_stock');
+                return __('hanoivip::gift.package.out_of_stock');
             }
         }
         if ($template->const_code)
         {
             Log::error('Gift gift package ' . $package . ' is const code');
-            return __('gift.package.is_const');
+            return __('hanoivip::gift.package.is_const');
         }
         // Generate
         $length = config('gift.length', self::DEFAULT_LENGTH);
@@ -150,11 +150,11 @@ class GiftService
             // Có thể là const code
             $package = GiftPackage::where('pack_code', $code)->first();
             if (empty($package))
-                return __('gift.usage.not-exists');
+                return __('hanoivip::gift.usage.not-exists');
             else
             {
                 if (empty($package->const_code))
-                    return __('gift.usage.const_code_mis_conf');
+                    return __('hanoivip::gift.usage.const_code_mis_conf');
                 else
                 {
                     // Const code found!
@@ -174,16 +174,16 @@ class GiftService
         {
             $endTime = new Carbon($end_time);
             if ($now >= $endTime)
-                return __('gift.usage.time_out');
+                return __('hanoivip::gift.usage.time_out');
         }
         // Kiểm tra đã bị sử dụng chưa
         $usageUid = $giftCode->usage_uid;
         if (!empty($usageUid))
         {
             if ($usageUid == $uid)
-                return __('gift.usage.already_used');
+                return __('hanoivip::gift.usage.already_used');
             else
-                return __('gift.usage.other_already_used');
+                return __('hanoivip::gift.usage.other_already_used');
         }
         // Kiểm tra đã dùng loại code này chưa
         $gifts = GiftCode::where('pack', $package->pack_code)
@@ -191,7 +191,7 @@ class GiftService
         ->get();
         if (!$gifts->isEmpty())
         {
-            return __('gift.usage.once_only');
+            return __('hanoivip::gift.usage.once_only');
         }
         $target = $giftCode->target;
         if (!empty($target))
@@ -199,14 +199,14 @@ class GiftService
             if ($user->getAuthIdentifierName() != $target)// &&
                 //TODO: change $user from array => Authenticatable, can not access email
                 //$user['email'] != $target)
-                return __('gift.usage.not_yours');
+                return __('hanoivip::gift.usage.not_yours');
         }
         // Check limit
         if ($package->limit > 0)
         {
             $count = GiftCode::where('pack', $package->pack_code)->count();
             if ($count >= $package->limit)
-                return __('gift.usage.limited');
+                return __('hanoivip::gift.usage.limited');
         }
         // Check server scope
         if (!empty($server) && !empty($package->server_include))
@@ -214,14 +214,14 @@ class GiftService
             $includes = json_decode($package->server_include, true);
             if (!empty($includes) &&
                 !in_array($server->ident, $includes))
-                return __('gift.usage.server-not-allowed');
+                return __('hanoivip::gift.usage.server-not-allowed');
         }
         if (!empty($server) && !empty($package->server_exclude))
         {
             $excludes = json_decode($package->server_exclude, true);
             if (!empty($excludes) &&
                 in_array($server->ident, $excludes))
-                return __('gift.usage.server-is-prohibited');
+                return __('hanoivip::gift.usage.server-is-prohibited');
         }
         // Rewarding user: TODO: make enqueue job here
         $rewards = json_decode($package->rewards, true);
@@ -244,7 +244,7 @@ class GiftService
         $uid = $user->getAuthIdentifier();
         $giftCode = GiftCode::where('gift_code', $code)->first();
         if (empty($giftCode))
-            return __('gift.usage.not-exists');
+            return __('hanoivip::gift.usage.not-exists');
             $package = GiftPackage::where('pack_code', $giftCode->pack)->first();
             if (empty($package))
                 throw new Exception('Gift gift code template does not exists ' . $giftCode->pack);
@@ -254,16 +254,16 @@ class GiftService
                 {
                     $endTime = new Carbon($end_time);
                     if ($now >= $endTime)
-                        return __('gift.usage.time_out');
+                        return __('hanoivip::gift.usage.time_out');
                 }
                 // Kiểm tra đã bị sử dụng chưa
                 $usageUid = $giftCode->usage_uid;
                 if (!empty($usageUid))
                 {
                     if ($usageUid == $uid)
-                        return __('gift.usage.already_used');
+                        return __('hanoivip::gift.usage.already_used');
                         else
-                            return __('gift.usage.other_already_used');
+                            return __('hanoivip::gift.usage.other_already_used');
                 }
                 // Kiểm tra đã dùng loại code này chưa
                 $gifts = GiftCode::where('pack', $package->pack_code)
@@ -271,7 +271,7 @@ class GiftService
                 ->get();
                 if (!$gifts->isEmpty())
                 {
-                    return __('gift.usage.once_only');
+                    return __('hanoivip::gift.usage.once_only');
                 }
                 $target = $giftCode->target;
                 if (!empty($target))
@@ -279,14 +279,14 @@ class GiftService
                     if ($user->getAuthIdentifierName() != $target)// &&
                         //TODO: change $user from array => Authenticatable, can not access email
                         //$user['email'] != $target)
-                        return __('gift.usage.not_yours');
+                        return __('hanoivip::gift.usage.not_yours');
                 }
                 // Check limit
                 if ($package->limit > 0)
                 {
                     $count = GiftCode::where('pack', $package->pack_code)->count();
                     if ($count >= $package->limit)
-                        return __('gift.usage.limited');
+                        return __('hanoivip::gift.usage.limited');
                 }
                 // Rewarding user
                 $rewards = json_decode($package->rewards, true);
