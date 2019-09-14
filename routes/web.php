@@ -5,9 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['web', 'auth:web' /*'auth:token'*/])->namespace('Hanoivip\Gift\Controllers')->prefix('user')->group(function () {
     
     // Home
-    Route::get('/gift', function () {
-        return redirect()->route('gift.use.ui');
-    })->name('gift');
+    Route::get('/gift', 'GiftController@useUI')->name('gift');
     // Người chơi bắt đầu sinh mã code của mình
     Route::get('/gift/generate', 'GiftController@personalGenerateUI')->name('gift.generate.ui');
     // Người chơi thực hiện sinh mã
@@ -33,9 +31,7 @@ Route::namespace('Hanoivip\Gift\Controllers')->prefix('sys')->group(function () 
 Route::middleware(['web', 'admin'])->namespace('Hanoivip\Gift\Controllers')->prefix('ecmin')->group(function () {
     
     // Home
-    Route::get('/gift', function () {
-        return redirect()->route('gift.stat');
-    });
+    Route::get('/gift', 'GiftController@statistics');
     // Thống kê tình hình sử dụng code
     Route::get('/gift/stat', 'GiftController@statistics')->name('gift.stat');
     // Sinh mã
