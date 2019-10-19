@@ -11,7 +11,7 @@
 			}
 		}, {
 			"type" : "path",
-			"url" : "../game",
+			"url" : "../game-contracts",
 			"options" : {
 					"symlink" : true
 			}
@@ -31,7 +31,7 @@
 		"laravel/tinker" : "~1.0",
 		"mervick/curl-helper" : "^1.1",
 		"hanoivip/payment-client" : "dev-master",
-		"hanoivip/game" : "dev-master",
+		"hanoivip/game-contracts" : "dev-master",
 		"hanoivip/events": "dev-master"
 	},
 	"require-dev": {

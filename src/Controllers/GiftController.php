@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Hanoivip\Gift\Services\GiftService;
 use Hanoivip\Gift\Requests\BatchGenerateGift;
-use Hanoivip\Game\Services\GameService;
+use Hanoivip\Game\Contracts\IGameService;
 use Hanoivip\Game\Services\ServerService;
 use Hanoivip\Gift\MissionParamException;
 
@@ -21,14 +21,12 @@ class GiftController extends Controller
     
     protected $servers;
     
-    protected $operator;
-    
     protected $game;
     
     public function __construct(
         GiftService $gift,
         ServerService $servers,
-        GameService $game)
+        IGameService $game)
     {
         $this->gift = $gift;
         $this->servers = $servers;

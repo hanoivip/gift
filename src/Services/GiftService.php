@@ -4,9 +4,11 @@ namespace Hanoivip\Gift\Services;
 
 use Carbon\Carbon;
 use Hanoivip\Game\Server;
-use Hanoivip\Game\Services\GameService;
+use Hanoivip\Game\Contracts\IGameOperator;
+use Hanoivip\Game\Contracts\IGameService;
 use Hanoivip\Gift\GiftCode;
 use Hanoivip\Gift\GiftPackage;
+use Hanoivip\Gift\UserGift;
 use Hanoivip\PaymentClient\BalanceUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +16,9 @@ use Exception;
 use Illuminate\Auth\Authenticatable;
 use Hanoivip\Events\Gift\TicketReceived;
 use Hanoivip\Gift\MissionParamException;
+use Hanoivip\Gift\ViewObjects\GiftUsageVO;
+use Hanoivip\Gift\ViewObjects\GiftVO;
+use Hanoivip\Gift\ViewObjects\GiftRewardVO;
 
 class GiftService
 {
@@ -21,14 +26,10 @@ class GiftService
     
     protected $balances;
     
-    protected $game;
-    
     public function __construct(
-        BalanceUtil $balances,
-        GameService $game)
+        BalanceUtil $balances)
     {
         $this->balances = $balances;
-        $this->game = $game;
     }
     
     /**
@@ -332,7 +333,8 @@ class GiftService
                     event(new TicketReceived($uid, $id, $count));
                     break;
                 case RewardTypes::GAME_ITEMS:
-                    if (!$this->game->sendItem($server, $user, $id, $count, ['roleid' => $role]))
+                    $operator = app()->make(IGameOperator::class);
+                    if (!$operator->sendItem($server, $user, $id, $count, ['roleid' => $role]))
                         throw new Exception("Gift send game reward fail");
                     break;
                 default:
@@ -420,5 +422,96 @@ class GiftService
     {
         $codes = GiftCode::where('generate_uid', $genUid)->get();
         return $codes->toArray();
+    }
+    
+    /**
+     * 
+     * @param string $product
+     * @return GiftPackage[]
+     */
+    private function packageByProduct($product)
+    {
+        if (empty($product))
+        {
+            $records = GiftPackage::all();
+        }
+        else
+        {
+            $records = GiftPackage::where('game_code', $product)->get();
+        }
+        return $records;
+    }
+    
+    /**
+     * Check for a product has any gift available
+     * @param string $product String of product code
+     * @return boolean
+     */
+    public function hasGift($product)
+    {
+        $records = $this->packageByProduct($product);
+        return $records->isNotEmpty();
+    }
+    /**
+     * Get all available gift of a product
+     * @param string $product Product code
+     * @return GiftVO[]
+     */
+    public function getGifts($product)
+    {
+        $records = $this->packageByProduct($product);
+        $objs = [];
+        if ($records->isNotEmpty())
+        {
+            foreach ($records as $record)
+            {
+                $obj = new GiftVO();
+                $obj->code = $record->pack_code;
+                $obj->title = $record->name;
+                $obj->rewards = [];
+                $rewards = json_decode($record->rewards);
+                if (!empty($rewards))
+                {
+                    foreach ($rewards as $r)
+                    {
+                        $r_obj = new GiftRewardVO();
+                        $r_obj->title = $r->title;
+                        $r_obj->count = $r->count;
+                        $r_obj->image = $r->image;
+                        $obj->rewards[] = $r_obj;
+                    }
+                }
+                $objs[] = $obj;
+            }
+        }
+        return $objs;
+    }
+    /**
+     * Get all package by product code?
+     * @param string $code Product code
+     * @return GiftPackage
+     */
+    public function getByCode($code)
+    {
+        
+    }
+    /**
+     * Get detail code usage status
+     * @param number $uid User ID
+     * @param string $code Product code
+     * @return array key: package code, value: boolean
+     */
+    public function getGiftUsage($uid, $product)
+    {
+        if (empty($product))
+            $usages = UserGift::where('user_id', $uid)->get();
+        else
+            $usages = UserGift::where('user_id', $uid)->where('game_code', $product)->get();
+        $objs = [];
+        foreach ($usages as $usage)
+        {
+            $objs[$usage->pack] = $usage->used;
+        }
+        return $objs;
     }
 }
