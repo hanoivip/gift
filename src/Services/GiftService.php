@@ -6,10 +6,10 @@ use Carbon\Carbon;
 use Hanoivip\Game\Server;
 use Hanoivip\Game\Contracts\IGameOperator;
 use Hanoivip\Game\Contracts\IGameService;
+use Hanoivip\GateClient\Facades\BalanceFacade;
 use Hanoivip\Gift\GiftCode;
 use Hanoivip\Gift\GiftPackage;
 use Hanoivip\Gift\UserGift;
-use Hanoivip\PaymentClient\BalanceUtil;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -23,14 +23,6 @@ use Hanoivip\Gift\ViewObjects\GiftRewardVO;
 class GiftService
 {
     const DEFAULT_LENGTH = 8;
-    
-    protected $balances;
-    
-    public function __construct(
-        BalanceUtil $balances)
-    {
-        $this->balances = $balances;
-    }
     
     /**
      * Sinh mã. 
@@ -327,7 +319,7 @@ class GiftService
             switch ($type)
             {
                 case RewardTypes::BALANCE:
-                    $this->balances->add($uid, $count, $reason, $id);
+                    BalanceFacade::add($uid, $count, $reason, $id);
                     break;
                 case RewardTypes::TICKET:
                     event(new TicketReceived($uid, $id, $count));
