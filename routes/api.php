@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:token')->namespace('Hanoivip\Gift\Controllers')->prefix('api')->group(function () {
+Route::middleware('auth:api')->namespace('Hanoivip\Gift\Controllers')->prefix('api')->group(function () {
     
     // Người chơi sinh mã code của mình
     Route::get('/gift/generate', 'GiftController@personalGenerateUI');
@@ -17,7 +17,7 @@ Route::middleware('auth:token')->namespace('Hanoivip\Gift\Controllers')->prefix(
     Route::post('/gift/use', 'GiftController@use');
 });
 
-Route::middleware(['auth:token', 'admin'])->namespace('Hanoivip\Gift\Controllers')->prefix('api')->group(function () {
+Route::middleware(['auth:api', 'admin'])->namespace('Hanoivip\Gift\Controllers')->prefix('api')->group(function () {
     
     // Xoá 1 package
     Route::delete('/gift/package', 'PackageController@remove');

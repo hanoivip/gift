@@ -4,8 +4,7 @@ namespace Hanoivip\Gift\Services;
 
 use Carbon\Carbon;
 use Hanoivip\Game\Server;
-use Hanoivip\Game\Contracts\IGameOperator;
-use Hanoivip\Game\Contracts\IGameService;
+use Hanoivip\GameContracts\Contracts\IGameOperator;
 use Hanoivip\GateClient\Facades\BalanceFacade;
 use Hanoivip\Gift\GiftCode;
 use Hanoivip\Gift\GiftPackage;
@@ -229,69 +228,6 @@ class GiftService
         $giftCode->use_time = $now;
         $giftCode->save();
         return true;
-    }
-    
-    
-    public function use1($user, $code, $server = null, $role = null)
-    {
-        $uid = $user->getAuthIdentifier();
-        $giftCode = GiftCode::where('gift_code', $code)->first();
-        if (empty($giftCode))
-            return __('hanoivip::gift.usage.not-exists');
-            $package = GiftPackage::where('pack_code', $giftCode->pack)->first();
-            if (empty($package))
-                throw new Exception('Gift gift code template does not exists ' . $giftCode->pack);
-                $now = Carbon::now();
-                $end_time = $package->end_time;
-                if (!empty($end_time))
-                {
-                    $endTime = new Carbon($end_time);
-                    if ($now >= $endTime)
-                        return __('hanoivip::gift.usage.time_out');
-                }
-                // Kiểm tra đã bị sử dụng chưa
-                $usageUid = $giftCode->usage_uid;
-                if (!empty($usageUid))
-                {
-                    if ($usageUid == $uid)
-                        return __('hanoivip::gift.usage.already_used');
-                        else
-                            return __('hanoivip::gift.usage.other_already_used');
-                }
-                // Kiểm tra đã dùng loại code này chưa
-                $gifts = GiftCode::where('pack', $package->pack_code)
-                ->where('usage_uid', $uid)
-                ->get();
-                if (!$gifts->isEmpty())
-                {
-                    return __('hanoivip::gift.usage.once_only');
-                }
-                $target = $giftCode->target;
-                if (!empty($target))
-                {
-                    if ($user->getAuthIdentifierName() != $target)// &&
-                        //TODO: change $user from array => Authenticatable, can not access email
-                        //$user['email'] != $target)
-                        return __('hanoivip::gift.usage.not_yours');
-                }
-                // Check limit
-                if ($package->limit > 0)
-                {
-                    $count = GiftCode::where('pack', $package->pack_code)->count();
-                    if ($count >= $package->limit)
-                        return __('hanoivip::gift.usage.limited');
-                }
-                // Rewarding user
-                $rewards = json_decode($package->rewards, true);
-                if (!empty($rewards))
-                    $this->sendRewards($user, $rewards, 'CodeUsage:' . $code, $server, $role);
-                    else
-                        Log::error('Gift package ' . $package->pack_code . ' has no rewards');
-                        // Mark used
-                        $giftCode->usage_uid = $uid;
-                        $giftCode->use_time = $now;
-                        $giftCode->save();
-                        return true;
     }
     
     // TODO: move to queue
