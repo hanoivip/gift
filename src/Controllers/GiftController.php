@@ -174,23 +174,31 @@ class GiftController extends Controller
     /**
      * Enable thread-safe per user
      */
-    public function use(UseGift $request)
+    public function use(Request $request)
     {
         $user = Auth::user();
         $code = $request->input('code');
         $message = '';
         $error_message = '';
+        if (empty($code))
+        {
+            $error_message = __('hanoivip::gift.use.fail');
+            if ($request->ajax())
+                return ['message' => $message, 'error_message' => $error_message];
+            else
+                return view('hanoivip::use-code', ['message' => $message, 'error_message' => $error_message]);
+        }
         try 
         {
             // Get Params
             $server = null;
             $role = null;
-            if (!empty($request->get('svname')))
+            if ($request->has('svname'))
             {
                 $svname = $request->get('svname');
                 $server = $this->servers->getServerByName($svname);
             }
-            if (!empty($request->get('roleid')))
+            if ($request->has('roleid'))
                 $role = $request->get('roleid');
             // Enable lock & request to service
             $lock = "GiftUsing" . $user->getAuthIdentifier();
