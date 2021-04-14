@@ -18,6 +18,8 @@ use Hanoivip\Gift\MissionParamException;
 use Hanoivip\Gift\ViewObjects\GiftUsageVO;
 use Hanoivip\Gift\ViewObjects\GiftVO;
 use Hanoivip\Gift\ViewObjects\GiftRewardVO;
+use Hanoivip\GameContracts\ViewOjects\UserVO;
+use Hanoivip\GameContracts\ViewOjects\ServerVO;
 
 class GiftService
 {
@@ -230,6 +232,11 @@ class GiftService
         return true;
     }
     
+    protected function forwardCode($user, $server, $code, $params)
+    {
+        
+    }
+    
     // TODO: move to queue
     protected function sendRewards($user, $rewards, $reason = "", $server, $role)
     {
@@ -257,6 +264,7 @@ class GiftService
                 case RewardTypes::BALANCE:
                     BalanceFacade::add($uid, $count, $reason, $id);
                     break;
+                    /*
                 case RewardTypes::TICKET:
                     event(new TicketReceived($uid, $id, $count));
                     break;
@@ -265,6 +273,11 @@ class GiftService
                     if (!$operator->sendItem($server, $user, $id, $count, ['roleid' => $role]))
                         throw new Exception("Gift send game reward fail");
                     break;
+                    */
+                case RewardTypes::GAME_CODE:
+                    /** @var IGameOperator $operator */
+                    $operator = app()->make(IGameOperator::class);
+                    $operator->useCode(new UserVO($uid, ""), $server, $id, ['roleid' => $role]);
                 default:
                     Log::debug('Gift reward type ' . $type . ' doest not supported now!');
                     throw new Exception("Gift reward type not supported");

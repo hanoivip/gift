@@ -64,11 +64,11 @@ class GiftController extends Controller
     {
         $servers = $this->servers->getAll();
         $data = ['servers' => $servers ];
-        if ($this->game->accountHasManyChars() &&
+        if ($this->game->supportMultiChar() &&
             $servers->isNotEmpty())
         {
             $user = Auth::user();
-            $chars = $this->game->queryRoles($user, $servers->first());
+            $chars = $this->game->characters($user, $servers->first());
         }
         if ($request->has('error_message'))
             $data['error_message'] = $request->get('error_message');
