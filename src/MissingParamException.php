@@ -4,7 +4,7 @@ namespace Hanoivip\Gift;
 
 use Exception;
 
-class MissionParamException extends Exception
+class MissingParamException extends Exception
 {
     
 }

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 use Exception;
 use Illuminate\Auth\Authenticatable;
 use Hanoivip\Events\Gift\TicketReceived;
-use Hanoivip\Gift\MissionParamException;
+use Hanoivip\Gift\MissingParamException;
 use Hanoivip\Gift\ViewObjects\GiftUsageVO;
 use Hanoivip\Gift\ViewObjects\GiftVO;
 use Hanoivip\Gift\ViewObjects\GiftRewardVO;
@@ -248,7 +248,7 @@ class GiftService
                 case RewardTypes::GAME_ITEMS:
                     if (empty($server)) 
                     {
-                        throw new MissionParamException();
+                        throw new MissingParamException();
                     }
                     break;
             }

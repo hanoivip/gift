@@ -195,11 +195,11 @@ class GiftController extends Controller
             $role = null;
             if ($request->has('svname'))
             {
-                $svname = $request->get('svname');
+                $svname = $request->input('svname');
                 $server = $this->servers->getServerByName($svname);
             }
             if ($request->has('roleid'))
-                $role = $request->get('roleid');
+                $role = $request->input('roleid');
             // Enable lock & request to service
             $lock = "GiftUsing" . $user->getAuthIdentifier();
             try
