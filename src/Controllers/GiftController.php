@@ -12,7 +12,7 @@ use Exception;
 use Hanoivip\Gift\Services\GiftService;
 use Hanoivip\Gift\Requests\BatchGenerateGift;
 use Hanoivip\Game\Services\ServerService;
-use Hanoivip\Gift\MissionParamException;
+use Hanoivip\Gift\MissingParamException;
 use Hanoivip\GameContracts\Contracts\IGameOperator;
 
 class GiftController extends Controller
@@ -226,7 +226,7 @@ class GiftController extends Controller
                     Cache::lock($lock)->release();
                 }
             }
-            catch (MissionParamException $mpe)
+            catch (MissingParamException $mpe)
             {
                 Cache::lock($lock)->release();
                 Log::debug('GiftController user is using game code');
