@@ -184,7 +184,7 @@ class GiftController extends Controller
         {
             $error_message = __('hanoivip::gift.use.fail');
             if ($request->ajax())
-                return ['message' => $message, 'error_message' => $error_message];
+                return ['error' => 1, 'message' => $error_message];
             else
                 return view('hanoivip::use-code', ['message' => $message, 'error_message' => $error_message]);
         }
@@ -218,10 +218,7 @@ class GiftController extends Controller
                     }
                     else 
                     {
-                        if ($result)
-                            $message = __('hanoivip::gift.use.success');
-                        else
-                            $error_message = __('hanoivip::gift.use.fail');
+                        $message = __('hanoivip::gift.use.success');
                     }
                     Cache::lock($lock)->release();
                 }
@@ -232,9 +229,6 @@ class GiftController extends Controller
                 Log::debug('GiftController user is using game code');
                 return response()->redirectToRoute('gift.use2.ui', ['error_message' => __('hanoivip::gift.use.missing-params')]);
             }
-            finally 
-            {
-            }
         }
         catch (Exception $ex)
         {
@@ -242,8 +236,18 @@ class GiftController extends Controller
             $error_message = __('hanoivip::gift.use.exception');
         }
         if ($request->ajax())
-            return ['message' => $message, 'error_message' => $error_message];
+        {
+            if (empty($error_message))
+            {
+                return ['error' => 0, 'message' => $message, 'data' => []];
+            }
+            else
+            {
+                return ['error' => 2, 'message' => $error_message, 'data' => []];
+            }
+        }
         else
+            //TODO: use-code-success & use-code-failure
             return view('hanoivip::use-code', ['message' => $message, 'error_message' => $error_message]);
     }
     
