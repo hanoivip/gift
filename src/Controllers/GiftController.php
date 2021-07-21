@@ -204,7 +204,7 @@ class GiftController extends Controller
             $lock = "GiftUsing" . $user->getAuthIdentifier();
             try
             {
-                if (!Cache::lock($lock, 120)->get())
+                if (!Cache::lock($lock)->get())
                 {
                     Log::error("Gift another gift using is in progress..");
                     $error_message = __('hanoivip::gift.use.too-fast');
