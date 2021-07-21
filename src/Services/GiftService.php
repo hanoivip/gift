@@ -269,7 +269,7 @@ class GiftService
                     break;
                 case RewardTypes::GAME_ITEMS:
                     $operator = app()->make(IGameOperator::class);
-                    if (!$operator->sendItem($server, $user, $id, $count, ['roleid' => $role]))
+                    if (!$operator->sentItem($server, $user, $id, $count, ['roleid' => $role]))
                         throw new Exception("Gift send game reward fail");
                     break;
                 case RewardTypes::GAME_CODE:
