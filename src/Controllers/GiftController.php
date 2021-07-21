@@ -223,16 +223,17 @@ class GiftController extends Controller
                         else
                             $error_message = __('hanoivip::gift.use.fail');
                     }
+                    Cache::lock($lock)->release();
                 }
             }
             catch (MissionParamException $mpe)
             {
+                Cache::lock($lock)->release();
                 Log::debug('GiftController user is using game code');
                 return response()->redirectToRoute('gift.use2.ui', ['error_message' => __('hanoivip::gift.use.missing-params')]);
             }
             finally 
             {
-                Cache::lock($lock)->release();
             }
         }
         catch (Exception $ex)
