@@ -2,33 +2,13 @@
 	"name" : "hanoivip/gift",
 	"description" : "Gift Module",
 	"type" : "library",
-	"repositories" : [{
-			"type" : "path",
-			"url" : "../gate-client",
-			"options" : {
-				"symlink" : true
-			}
-		}, {
-			"type" : "path",
-			"url" : "../game-contracts",
-			"options" : {
-				"symlink" : true
-			}
-		}, {
-			"type" : "path",
-			"url" : "../events",
-			"options" : {
-				"symlink" : true
-			}
-		}
-	],
 	"require" : {
 		"php" : ">=7.0.0",
 		"fideloper/proxy" : "~4.0",
 		"guzzlehttp/guzzle" : "^6.3",
 		"laravel/framework" : ">=5.5",
 		"laravel/tinker" : "~1.0",
-		"hanoivip/gate-client" : "dev-main",
+		"hanoivip/payment-contract" : "dev-main",
 		"hanoivip/game-contracts" : "dev-master",
 		"hanoivip/events" : "dev-master"
 	},
